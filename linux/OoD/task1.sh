@@ -88,18 +88,47 @@ function parse_arguments(){
   return 1
 }
 
-function test () {
-
-  if ! is_folder_existing source;  then
-    create_catalog source
+function is_source_csv(){
+  if [[ "$SOURCE" =~ $CSV_PATTERN ]]; then
+      return 0
+  else
+    return 1
   fi
+}
 
-  if ! is_folder_exisitng destiny; then
-    create_catalog destiny
+function check_essential_arguments() {
+  if is_source_csv "$SOURCE" -eq 0; then
+    echo "The source file is not csv. The program will be stopped."
+    exit 0
   fi
+}
 
+function run () {
 
+  URL_PATTERN='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
+  CSV_PATTERN='.+(\.csv)$'
+
+  SOURCE_FOLDER="source"
+  DESTINY_FOLDER="destiny"
+
+  parse_arguments "$@"
+  check_essential_arguments
+
+  declare -a folders=(SOURCE_FOLDER DESTINY_FOLDER)
+
+  for folder_name in "${folders[@]}"
+  do
+    if is_folder_existing "$folder_name" -eq 0 ;  then
+      create_catalog "$folder_name"
+    fi
+
+    if is_folder_empty "$folder_name" -eq 0; then
+      echo "Folder '$folder_name' is not empty"
+    fi
+  done
+
+  save_source_file "$SOURCE"
 
 }
 
-test
+run "$@"
