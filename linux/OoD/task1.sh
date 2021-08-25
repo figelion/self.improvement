@@ -12,11 +12,6 @@
 #8. Każdy błąd powinien być zapisany jako log-error-%nazwa pliku%-%data%.txt
 
 
-function create_catalog () {
-  mkdir $1
-  return 0
-}
-
 function is_folder_existing () {
   if [ -f "$1" ]; then
     return 0
@@ -25,15 +20,36 @@ function is_folder_existing () {
   fi
 }
 
+function is_folder_empty() {
+  if [ "$(ls -A "$1")" ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+function create_catalog () {
+  mkdir $1
+  return 0
+}
+
+function is_source_url(){
+    if [[ "$SOURCE" =~ $URL_PATTERN ]]; then
+      return 0
+    else
+      return 1
+    fi
+}
+
+function save_source_file() {
+  if is_source_url $1 -eq 1; then
+    wget $SOURCE -P $SOURCE_FOLDER
+  else
+    cp $SOURCE $SOURCE_FOLDER
+  fi
+}
+
 function load_file_csv() {
-  return 1
-}
-
-function download_file_csv() {
-  return 1
-}
-
-function save_file() {
   return 1
 }
 
