@@ -45,8 +45,47 @@ function redirect_errors() {
   return 1
 }
 
-function is_empty() {
+function parse_arguments(){
+  while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+      -h|--help)
+        echo "Help is coming!"
+        exit 0
+      ;;
 
+      -s|--source)
+        if [ $# -gt 0 ]; then
+          SOURCE=$2
+          shift
+          shift
+        fi
+      ;;
+
+      -f|--filter)
+        if [ $# -gt 0 ]; then
+          FILTR=$2
+          shift
+          shift
+        fi
+      ;;
+
+      -frow|--filter_row)
+        if [ $# -gt 0 ]; then
+          FILTER_ROW=$2
+          shift
+          shift
+        fi
+      ;;
+      -freg|--filter_regex)
+        if [ $# -gt 0 ]; then
+          FILTER_REGEX=$2
+          shift
+          shift
+        fi
+    esac
+  done
+  return 1
 }
 
 function test () {
