@@ -13,10 +13,10 @@
 
 
 function is_folder_existing () {
-  if [ -f "$1" ]; then
-    return 0
-  else
+  if [ -e "$1" ]; then
     return 1
+  else
+    return 0
   fi
 }
 
@@ -41,24 +41,16 @@ function is_source_url(){
     fi
 }
 
+function get_name_of_source() {
+  filename=$(basename -- "$1")
+}
+
 function save_source_file() {
-  if is_source_url $1 -eq 1; then
-    wget $SOURCE -P $SOURCE_FOLDER
+  if is_source_url "$1" -eq 1; then
+    wget "$1" -P "$SOURCE_FOLDER"
   else
-    cp $SOURCE $SOURCE_FOLDER
+    cp "$1" "$SOURCE_FOLDER"
   fi
-}
-
-function load_file_csv() {
-  return 1
-}
-
-function filter() {
-  return 1
-}
-
-function redirect_errors() {
-  return 1
 }
 
 function parse_arguments(){
@@ -105,10 +97,10 @@ function parse_arguments(){
 }
 
 function is_source_csv(){
-  if [[ "$SOURCE" =~ $CSV_PATTERN ]]; then
-      return 0
-  else
+  if [[ "$1" =~ $CSV_PATTERN ]]; then
     return 1
+  else
+    return 0
   fi
 }
 
@@ -119,18 +111,33 @@ function check_essential_arguments() {
   fi
 }
 
+function process_file(){
+  echo $1
+  csvgrep --help
+  return 0
+
+}
+
 function run () {
+
+  SOURCE=""
+  FILTR=""
+  FILTER_ROW=""
+  FILTER_REGEX=""
+
+  filename=""
 
   URL_PATTERN='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
   CSV_PATTERN='.+(\.csv)$'
 
-  SOURCE_FOLDER="source"
-  DESTINY_FOLDER="destiny"
+  SOURCE_FOLDER="./source/"
+  DESTINY_FOLDER="./destiny/"
 
   parse_arguments "$@"
   check_essential_arguments
+  get_name_of_source "$SOURCE"
 
-  declare -a folders=(SOURCE_FOLDER DESTINY_FOLDER)
+  declare -a folders=("$SOURCE_FOLDER" "$DESTINY_FOLDER")
 
   for folder_name in "${folders[@]}"
   do
@@ -144,6 +151,7 @@ function run () {
   done
 
   save_source_file "$SOURCE"
+  process_file "$SOURCE_FOLDER$filename"
 
 }
 
