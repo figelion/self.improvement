@@ -28,7 +28,7 @@ function is_folder_empty() {
   fi
 }
 
-function create_catalog () {
+function create_folder () {
   mkdir $1
   return 0
 }
@@ -41,8 +41,10 @@ function is_source_url(){
     fi
 }
 
-function get_name_of_source() {
-  filename=$(basename -- "$1")
+function get_name_extension_of_source() {
+  bare_name=$(basename -- "$1")
+  filename="${bare_name%.*}"
+  file_extension="${bare_name##*.}"
 }
 
 function save_source_file() {
@@ -58,7 +60,15 @@ function parse_arguments(){
     key="$1"
     case $key in
       -h|--help)
-        echo "Help is coming!"
+        echo "Script used to load the csv and filter it by options"
+        echo " "
+        echo "Require arguemnts:"
+        echo "-s|--source:            url or path to csv which should be processed"
+        echo "--frow:     column in csv which should be filtered."
+        echo " "
+        echo "One of belowe arguemnts must be define:"
+        echo "--fexp:                 string which will be looked for in given column in csv"
+        echo "--freg:                 regex which will be match in given column in csv"
         exit 0
       ;;
 
@@ -70,27 +80,29 @@ function parse_arguments(){
         fi
       ;;
 
-      -f|--filter)
+      --fexp)
         if [ $# -gt 0 ]; then
-          FILTR=$2
+          FILTER_EXPRE=$2
           shift
           shift
         fi
       ;;
 
-      -frow|--filter_row)
+      --frow)
         if [ $# -gt 0 ]; then
-          FILTER_ROW=$2
+          FILTER_COLUMN=$2
           shift
           shift
         fi
       ;;
-      -freg|--filter_regex)
+
+      --freg)
         if [ $# -gt 0 ]; then
           FILTER_REGEX=$2
           shift
           shift
         fi
+
     esac
   done
   return 1
@@ -107,25 +119,54 @@ function is_source_csv(){
 function check_essential_arguments() {
   if is_source_csv "$SOURCE" -eq 0; then
     echo "The source file is not csv. The program will be stopped."
-    exit 0
+    exit 1
+  elif ! [ "$FILTER_COLUMN" ]; then
+    echo "No column for filtering define. The program will be stopped"
+    exit 1
+  elif ! [[ "$FILTER_EXPRE" || "$FILTER_REGEX" ]]; then
+    echo "No filtering defined. The program will be stopped"
+    exit 1
   fi
 }
 
-function process_file(){
-  echo $1
-  csvgrep --help
-  return 0
+function create_meta_file(){
+  OWNER=$(stat -c '%U' $0)
+  SIZE=$(stat -c '%s' $0)
+  SOURCE=$(pwd)
+  COLUMN_NAMES=$(cat $SOURCE_FILE_PATH | head -n 1)
 
+  echo "source: $SOURCE" >> $DEST_FILE_PATH
+  echo "owner: $OWNER" >> $DEST_FILE_PATH
+  echo "size: $SIZE bytes" >> $DEST_FILE_PATH
+  echo "output lines: $LINES" >> $DEST_FILE_PATH
+  echo "column names: $COLUMN_NAMES" >> $DEST_FILE_PATH
+
+}
+
+function process_file(){
+  output_date=$(date +"%Y%m%d%H%M")
+  if [ "$FILTER_COLUMN" ]; then
+    if [ "$FILTER_EXPRE" ]; then
+      echo "use expre"
+      csvgrep -c "$FILTER_COLUMN" -m "$FILTER_EXPRE" "$1" | csvlook > "$DESTINY_FOLDER$output_date"_"$filename"".txt"
+    elif [ "$FILTER_REGEX" ]; then
+      echo "use reg"
+      echo "$FILTER_REGEX"
+      csvgrep -c "$FILTER_COLUMN" -r "$FILTER_EXPRE" "$1" | csvlook > "$DESTINY_FOLDER$output_date"_"$filename"".txt"
+    fi
+  fi
+  return 0
 }
 
 function run () {
 
   SOURCE=""
-  FILTR=""
-  FILTER_ROW=""
+  FILTER_COLUMN=""
+  FILTER_EXPRE=""
   FILTER_REGEX=""
 
   filename=""
+  file_extension=""
 
   URL_PATTERN='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
   CSV_PATTERN='.+(\.csv)$'
@@ -135,14 +176,14 @@ function run () {
 
   parse_arguments "$@"
   check_essential_arguments
-  get_name_of_source "$SOURCE"
+  get_name_extension_of_source "$SOURCE"
 
   declare -a folders=("$SOURCE_FOLDER" "$DESTINY_FOLDER")
 
   for folder_name in "${folders[@]}"
   do
     if is_folder_existing "$folder_name" -eq 0 ;  then
-      create_catalog "$folder_name"
+      create_folder "$folder_name"
     fi
 
     if is_folder_empty "$folder_name" -eq 0; then
@@ -151,7 +192,7 @@ function run () {
   done
 
   save_source_file "$SOURCE"
-  process_file "$SOURCE_FOLDER$filename"
+  process_file "$SOURCE_FOLDER$filename.$file_extension"
 
 }
 
