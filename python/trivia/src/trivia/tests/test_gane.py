@@ -100,7 +100,110 @@ def test_current_category_should_return_rock_question_for_undefined_place() -> N
     assert game._current_category == QuestionCategory.ROCK
 
 
+@pytest.mark.parametrize("roll", [1, 3, 5])
+def test_roll_should_free_player_from_penalty_box_when_rolled_number_is_odd(roll: int) -> None:
+    game = setup_the_test_game()
+    game.in_penalty_box[0] = 1
+    game.roll(roll)
+
+    assert game.is_getting_out_of_penalty_box is True
 
 
+@pytest.mark.parametrize("roll", [2, 4, 6])
+def test_roll_should_hold_a_player_in_penalty_box_when_rolled_number_is_even(roll: int) -> None:
+    game = setup_the_test_game()
+    game.in_penalty_box[0] = 1
+    game.roll(roll)
 
+    assert game.is_getting_out_of_penalty_box is False
+
+
+def test_roll_should_restart_place_after_exceeding_board_places() -> None:
+    game = setup_the_test_game()
+    board_places_limit = 11
+    game.places[0] = board_places_limit
+    game.roll(1)
+
+    assert game.places[0] <= board_places_limit
+
+
+def test_roll_should_move_player_by_rolled_number() -> None:
+    game = setup_the_test_game()
+    rolled_number = 2
+    current_place = 5
+    game.places[0] = current_place
+    game.roll(rolled_number)
+
+    assert game.places[0] == rolled_number + current_place
+
+
+def test_roll_should_inform_about_who_is_rolling_and_what_was_rolled(capsys) -> None:
+    game = setup_the_test_game()
+    capsys.readouterr()  # Catch not needed messages
+    rolled_number = 5
+    game.roll(rolled_number)
+
+    captured_message = capsys.readouterr()
+    captured_message = captured_message.out.split("\n")
+
+    assert captured_message[0] == "Player is the current player"
+    assert captured_message[1] == f"They have rolled a {rolled_number}"
+
+
+def test_roll_should_inform_about_gettin_out_of_penalty_box(capsys) -> None:
+    game = setup_the_test_game()
+    capsys.readouterr()  # Catch not needed messages
+
+    rolled_number = 5
+    game.in_penalty_box[0] = 1
+    game.roll(rolled_number)
+
+    captured_message = capsys.readouterr()
+    captured_message = captured_message.out.split("\n")
+
+    assert captured_message[2] == 'Player is getting out of the penalty box'
+
+
+def test_roll_should_inform_about_getting_out_of_penalty_box_when_rolled_odd_number(capsys) -> None:
+    game = setup_the_test_game()
+    capsys.readouterr()  # Catch not needed messages
+
+    rolled_number = 5
+    game.in_penalty_box[0] = 1
+    game.roll(rolled_number)
+
+    captured_message = capsys.readouterr()
+    captured_message = captured_message.out.split("\n")
+
+    assert captured_message[2] == 'Player is getting out of the penalty box'
+
+
+def test_roll_should_inform_about_staying_in_penelty_box_when_rolled_even_number(capsys) -> None:
+    game = setup_the_test_game()
+    capsys.readouterr()  # Catch not needed messages
+
+    rolled_number = 6
+    game.in_penalty_box[0] = 1
+    game.roll(rolled_number)
+
+    captured_message = capsys.readouterr()
+    captured_message = captured_message.out.split("\n")
+
+    assert captured_message[2] == 'Player is not getting out of the penalty box'
+
+
+def test_roll_should_inform_about_the_new_place_of_player_when_he_get_out_of_penalty_box(capsys) -> None:
+    game = setup_the_test_game()
+    capsys.readouterr()  # Catch not needed messages
+
+    rolled_number = 3
+    current_place = 5
+    game.places[0] = current_place
+    game.in_penalty_box[0] = 1
+    game.roll(rolled_number)
+
+    captured_message = capsys.readouterr()
+    captured_message = captured_message.out.split("\n")
+
+    assert captured_message[3] == 'Player\'s new location is 8'
 

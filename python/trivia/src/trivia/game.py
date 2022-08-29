@@ -176,6 +176,10 @@ class Game:
 
 
 def start_test_game(game: Game) -> None:
+    game.add_player('Chgfhhet')
+    game.add_player('Pat')
+    game.add_player('Suea')
+
     while True:
         game.roll(randrange(5) + 1)
 
@@ -190,12 +194,6 @@ def start_test_game(game: Game) -> None:
 
 if __name__ == '__main__':
     not_a_winner = False
-
     game = Game()
-    game.add_player('Chgfhhet')
-    game.add_player('Pat')
-    game.add_player('Suea')
-    game.add_player('Suea')
-
     start_test_game(game)
 
