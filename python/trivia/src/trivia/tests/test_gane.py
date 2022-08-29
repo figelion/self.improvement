@@ -4,7 +4,7 @@ from src.trivia.exception import MaximumPlayerLimitExceededException
 import pytest
 
 
-def setup_the_test_game(names_of_players: str = ["Player"]) -> Game:
+def basic_setup_the_test_game(names_of_players: str = ["Player"]) -> Game:
     game = Game()
     for name in names_of_players:
         game.add_player(name)
@@ -47,11 +47,11 @@ def test_you_cannot_exceed_the_players_limit() -> None:
 ])
 def test_ask_question_should_print_question_from_given_category(capsys, place: int, message: str) -> None:
 
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     game.places[0] = place
     capsys.readouterr()  # filter out irrelevant messages
 
-    game._ask_question()
+    game.print_question()
 
     captured_question = capsys.readouterr()
 
@@ -59,7 +59,7 @@ def test_ask_question_should_print_question_from_given_category(capsys, place: i
 
 
 def test_game_should_have_access_to_fifty_questions_in_each_category() -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
 
     assert len(game.pop_questions) == 50
     assert len(game.science_questions) == 50
@@ -85,7 +85,7 @@ def test_current_category_should_return_question_category_based_on_the_place_of_
         place: int,
         category: str,
 ) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
 
     game.places[0] = place
 
@@ -93,7 +93,7 @@ def test_current_category_should_return_question_category_based_on_the_place_of_
 
 
 def test_current_category_should_return_rock_question_for_undefined_place() -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
 
     game.places[0] = "Undefined"
 
@@ -102,7 +102,7 @@ def test_current_category_should_return_rock_question_for_undefined_place() -> N
 
 @pytest.mark.parametrize("roll", [1, 3, 5])
 def test_roll_should_free_player_from_penalty_box_when_rolled_number_is_odd(roll: int) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     game.in_penalty_box[0] = 1
     game.roll(roll)
 
@@ -111,7 +111,7 @@ def test_roll_should_free_player_from_penalty_box_when_rolled_number_is_odd(roll
 
 @pytest.mark.parametrize("roll", [2, 4, 6])
 def test_roll_should_hold_a_player_in_penalty_box_when_rolled_number_is_even(roll: int) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     game.in_penalty_box[0] = 1
     game.roll(roll)
 
@@ -119,7 +119,7 @@ def test_roll_should_hold_a_player_in_penalty_box_when_rolled_number_is_even(rol
 
 
 def test_roll_should_restart_place_after_exceeding_board_places() -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     board_places_limit = 11
     game.places[0] = board_places_limit
     game.roll(1)
@@ -128,7 +128,7 @@ def test_roll_should_restart_place_after_exceeding_board_places() -> None:
 
 
 def test_roll_should_move_player_by_rolled_number() -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     rolled_number = 2
     current_place = 5
     game.places[0] = current_place
@@ -138,7 +138,7 @@ def test_roll_should_move_player_by_rolled_number() -> None:
 
 
 def test_roll_should_inform_about_who_is_rolling_and_what_was_rolled(capsys) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     capsys.readouterr()  # Catch not needed messages
     rolled_number = 5
     game.roll(rolled_number)
@@ -151,7 +151,7 @@ def test_roll_should_inform_about_who_is_rolling_and_what_was_rolled(capsys) -> 
 
 
 def test_roll_should_inform_about_gettin_out_of_penalty_box(capsys) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     capsys.readouterr()  # Catch not needed messages
 
     rolled_number = 5
@@ -165,7 +165,7 @@ def test_roll_should_inform_about_gettin_out_of_penalty_box(capsys) -> None:
 
 
 def test_roll_should_inform_about_getting_out_of_penalty_box_when_rolled_odd_number(capsys) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     capsys.readouterr()  # Catch not needed messages
 
     rolled_number = 5
@@ -179,7 +179,7 @@ def test_roll_should_inform_about_getting_out_of_penalty_box_when_rolled_odd_num
 
 
 def test_roll_should_inform_about_staying_in_penelty_box_when_rolled_even_number(capsys) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     capsys.readouterr()  # Catch not needed messages
 
     rolled_number = 6
@@ -193,7 +193,7 @@ def test_roll_should_inform_about_staying_in_penelty_box_when_rolled_even_number
 
 
 def test_roll_should_inform_about_the_new_place_of_player_when_he_get_out_of_penalty_box(capsys) -> None:
-    game = setup_the_test_game()
+    game = basic_setup_the_test_game()
     capsys.readouterr()  # Catch not needed messages
 
     rolled_number = 3
@@ -207,3 +207,37 @@ def test_roll_should_inform_about_the_new_place_of_player_when_he_get_out_of_pen
 
     assert captured_message[3] == 'Player\'s new location is 8'
 
+
+@pytest.mark.parametrize("in_penalty_box, roll, message_index", [(0, 2, 2), (1, 3, 3)])
+def test_roll_should_inform_about_the_new_place_of_player_when_he_moved(capsys, in_penalty_box, roll, message_index):
+    game = basic_setup_the_test_game()
+    capsys.readouterr()  # Catch not needed messages
+
+    current_place = 3
+    game.places[0] = current_place
+    game.in_penalty_box[0] = in_penalty_box
+    game.roll(roll)
+
+    captured_message = capsys.readouterr()
+    captured_message = captured_message.out.split("\n")
+
+    assert captured_message[message_index] == f'Player\'s new location is {current_place + roll}'
+
+@pytest.mark.parametrize("in_penalty_box, roll, message_index", [(0, 2, 3), (1, 3, 4)])
+def test_roll_inform_about_question_category_when_player_is_out_of_penalty_box(
+        capsys,
+        in_penalty_box: int,
+        roll: int,
+        message_index: int,
+) -> None:
+    game = basic_setup_the_test_game()
+    capsys.readouterr()  # Catch not needed messages
+
+    game.in_penalty_box[0] = in_penalty_box
+    game.roll(roll)
+
+    captured_message = capsys.readouterr()
+    captured_message = captured_message.out.split("\n")
+
+    assert captured_message[message_index] == f"The category is {game.get_current_question_category_name()}"
+    assert captured_message[message_index+1] == f"{game.get_current_question_category_name()} Question 0"
