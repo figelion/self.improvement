@@ -195,6 +195,7 @@ if __name__ == '__main__':
     game.add_player('Chgfhhet')
     game.add_player('Pat')
     game.add_player('Suea')
+    game.add_player('Suea')
 
     start_test_game(game)
 
