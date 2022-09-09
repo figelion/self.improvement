@@ -2,6 +2,7 @@ import pytest
 
 from greetings import get_greeting_for_user
 from greetings.greeting_schedule import find_greeting
+from user_messages.process_user_messages import get_answer_on_user_message
 
 
 @pytest.mark.parametrize("greeting_time", [20, 21, 5])
@@ -37,8 +38,10 @@ def test_greeting_between_12_20_succeeds(greeting_time: int) -> None:
     assert result == fr"¡Buenas tardes {name}!"
 
 
-def test_detected_palindrome() -> None:
-    assert False
+def test_answer_for_user_message_should_be_a_reverted_user_message() -> None:
+    message_from_user = "hola"
+    result = get_answer_on_user_message(message_from_user)
+    assert result == "aloh"
 
 
 def test_says_goodbyes_when_key_word_used() -> None:
