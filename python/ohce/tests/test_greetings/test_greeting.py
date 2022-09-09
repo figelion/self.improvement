@@ -44,6 +44,14 @@ def test_answer_for_user_message_should_be_a_reverted_user_message() -> None:
     assert result == "aloh"
 
 
+def test_answer_for_user_palindrome_message_should_be_a_reverted_user_message_with_special_sentence() -> None:
+    message_from_user = "able was I ere I saw elba"
+    result = get_answer_on_user_message(message_from_user)
+    special_sentence = r"¡Bonita palabra!"
+    assert result[0] == message_from_user
+    assert result[1] == special_sentence
+
+
 def test_says_goodbyes_when_key_word_used() -> None:
     assert False
 
