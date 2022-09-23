@@ -1,6 +1,7 @@
 import pytest
 
 from src.account import Account
+from src.account_consts import ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE
 
 
 def test_deposition_made_for_account_adds_money_to_account() -> None:
@@ -26,7 +27,9 @@ def test_withdraw_money_from_account_updates_state_of_account() -> None:
 
     assert account.balance == 50
 
+
 def test_withdraw_money_from_empty_account_raise_en_error() -> None:
     account = Account()
-    with pytest.raises(Exception):
+    with pytest.raises(ValueError, match=ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE):
         withdraw_money = account.withdraw(50)
+

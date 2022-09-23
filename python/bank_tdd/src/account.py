@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+from src.account_consts import ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE
+
 
 class BasicAccount(ABC):
 
@@ -15,7 +17,7 @@ class BasicAccount(ABC):
 class Account(BasicAccount):
 
     def __init__(self):
-        self._balance = 0
+        self._balance = 0.
 
     @property
     def balance(self) -> int:
@@ -26,6 +28,6 @@ class Account(BasicAccount):
 
     def withdraw(self, amount: int) -> int:
         if amount > self._balance:
-            raise ValueError("Cannot withdraw money: request amount is bigger then balance of the account")
+            raise ValueError(ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE)
         self._balance -= amount
         return amount
