@@ -7,6 +7,10 @@ class BasicAccount(ABC):
     def deposition(self, amount: int) -> None:
         raise NotImplemented
 
+    @abstractmethod
+    def withdraw(self, amount: int) -> int:
+        raise NotImplemented
+
 
 class Account(BasicAccount):
 
@@ -19,3 +23,7 @@ class Account(BasicAccount):
 
     def deposition(self, amount: int) -> None:
         self._balance += amount
+
+    def withdraw(self, amount: int) -> int:
+        self._balance -= amount
+        return amount

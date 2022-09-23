@@ -22,6 +22,6 @@ def test_withdraw_money_from_account_returns_money() -> None:
 def test_withdraw_money_from_account_updates_state_of_account() -> None:
     account = Account()
     account.deposition(100)
-    withdraw_money = account.withdraw(50)
+    account.withdraw(50)
 
     assert account.balance == 50
