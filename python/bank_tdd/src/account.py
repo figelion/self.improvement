@@ -25,5 +25,7 @@ class Account(BasicAccount):
         self._balance += amount
 
     def withdraw(self, amount: int) -> int:
+        if amount > self._balance:
+            raise ValueError("Cannot withdraw money: request amount is bigger then balance of the account")
         self._balance -= amount
         return amount
