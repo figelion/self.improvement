@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from src.account_consts import ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE
+from src.constance import ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE
 
 
 class BasicAccount(ABC):
