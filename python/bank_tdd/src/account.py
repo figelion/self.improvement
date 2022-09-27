@@ -9,13 +9,12 @@ from src.enums import Operation
 
 @dataclass
 class Statement:
-    date: datetime.datetime
+    date: datetime.date
     amount: float
     operation: Operation
-    balance: float
 
 
-class BasicAccount(ABC):
+class AccountInterface(ABC):
 
     @abstractmethod
     def deposition(self, amount: int) -> None:
@@ -26,25 +25,40 @@ class BasicAccount(ABC):
         raise NotImplemented
 
 
-class OperationHistory():
+class OperationHistory:
     def __init__(self):
         self._history_of_operations: list[Statement] = []
 
-        def _add_operation_to_history(self, function_name: str, amount: float) -> None:
-            if function_name == "deposition":
-                operation = Operation.DEPOSITION
-            else:
-                operation = Operation.WITHDRAWAL
+    def __enter__(self):
+        return self
 
-            history_entry = Statement(date=datetime.datetime.now(), amount=amount, operation=operation)
-            self._history_of_operations.append(history_entry)
+    def __exit__(self, type, value, traceback):
+        pass
+
+    def _add_operation_to_history(self, function_name: str, amount: float) -> None:
+        if function_name == "_deposition":
+            operation = Operation.DEPOSITION
+        else:
+            operation = Operation.WITHDRAWAL
+
+        history_entry = Statement(date=datetime.datetime.now().date(), amount=amount, operation=operation)
+        self._history_of_operations.append(history_entry)
+
+    def save_account_operation(self, function, *args, **kwargs):
+        result = function(*args, **kwargs)
+        self._add_operation_to_history(function.__name__, *args, **kwargs)
+        return result
+
+    @property
+    def history(self):
+        return self._history_of_operations
 
 
-class Account(BasicAccount):
+class Account(AccountInterface):
 
-    def __init__(self, operation_history_container: OperationHistory) -> None:
+    def __init__(self, history_container: OperationHistory) -> None:
         self._balance = 0.
-        self._history_of_operations: OperationHistory = operation_history_container
+        self.history_container = history_container
 
     @property
     def balance(self) -> float:
@@ -52,35 +66,23 @@ class Account(BasicAccount):
 
     @property
     def statement(self) -> list[Statement]:
-        return self._history_of_operations
+        return self.history_container.history
 
-    def _add_operation_to_history(self, function_name: str, amount: float) -> None:
-        if function_name == "deposition":
-            operation = Operation.DEPOSITION
-        else:
-            operation = Operation.WITHDRAWAL
-
-        history_entry = Statement(date=datetime.datetime.now(), amount=amount, operation=operation)
-        self._history_of_operations.append(history_entry)
-
-    @classmethod
-    def save_operation(cls, function):
-        @functools.wraps(function)
-        def wrapper(*args, **kwargs):
-            result = function(*args, **kwargs)
-            cls._add_operation_to_history(self=function.__parent__, function.__name__, *args, **kwargs)
-            return result
-
-        return wrapper()
-
-    @save_operation(self)
     def deposition(self, amount: float) -> None:
-        self._balance += amount
+        def _deposition(amount):
+            self._balance += amount
 
-    @save_operation
+        with self.history_container as operation_register:
+            operation_register.save_account_operation(_deposition, amount)
+
     def withdraw(self, amount: float) -> float:
-        if amount > self._balance:
-            raise ValueError(ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE)
-        self._balance -= amount
-        return amount
+        def _withdraw(amount: int):
+            if amount > self._balance:
+                raise ValueError(ERROR_MESSAGE_WITHDRAW_EXCEEDS_BALANCE)
+            self._balance -= amount
+            return amount
 
+        with self.history_container as operation_register:
+            withdraw_money = operation_register.save_account_operation(_withdraw, amount)
+
+        return withdraw_money
